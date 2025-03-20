@@ -2,8 +2,8 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>QR CODE</title>
 </head>
 
@@ -17,23 +17,37 @@
         const CLIENT_ID = "39d174f0-1b70-4661-af8d-b96976715129";
         const URL = "https://api.vietqr.io/v2/generate";
 
-        // ⏪ Khôi phục giá trị từ localStorage khi trang load
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedAmount = localStorage.getItem('savedAmount');
+        // 👉 Hàm lưu cookie
+        function setCookie(name, value, days) {
+            const expires = days
+                ? `; expires=${new Date(Date.now() + days * 864e5).toUTCString()}`
+                : "";
+            document.cookie = `${name}=${encodeURIComponent(value || "")}${expires}; path=/`;
+        }
+
+        // 👉 Hàm đọc cookie
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+            return match ? decodeURIComponent(match[2]) : null;
+        }
+
+        // ⏪ Khôi phục giá trị từ cookie khi trang load
+        window.addEventListener("DOMContentLoaded", () => {
+            const savedAmount = getCookie("savedAmount");
             if (savedAmount !== null) {
-                document.getElementById('inputMount').value = savedAmount;
-                console.log('Khôi phục số tiền từ localStorage:', savedAmount);
+                document.getElementById("inputMount").value = savedAmount;
+                console.log("✅ Khôi phục số tiền từ cookie:", savedAmount);
             }
         });
 
-        // 💾 Lưu giá trị mỗi khi người dùng nhập
-        document.getElementById('inputMount').addEventListener('input', (e) => {
+        // 💾 Lưu vào cookie mỗi khi người dùng nhập
+        document.getElementById("inputMount").addEventListener("input", (e) => {
             const amount = e.target.value.trim();
-            localStorage.setItem('savedAmount', amount);
+            setCookie("savedAmount", amount, 7); // Cookie tồn tại 7 ngày
         });
 
         async function generateQR() {
-            const qrCodeMountInput = document.getElementById('inputMount');
+            const qrCodeMountInput = document.getElementById("inputMount");
             const amount = qrCodeMountInput.value.trim();
 
             const payload = {
@@ -46,34 +60,33 @@
 
             try {
                 const response = await fetch(URL, {
-                    method: 'POST',
+                    method: "POST",
                     headers: {
-                        'Content-Type': 'application/json',
-                        'client_id': CLIENT_ID,
-                        'api_key': API_KEY
+                        "Content-Type": "application/json",
+                        client_id: CLIENT_ID,
+                        api_key: API_KEY
                     },
                     body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
-                console.log('STATUS', response.status);
+                console.log("STATUS", response.status);
 
                 if (response.ok && data?.data?.qrDataURL) {
-                    const qrCodeImage = document.getElementById('qrCode');
+                    const qrCodeImage = document.getElementById("qrCode");
                     qrCodeImage.src = data.data.qrDataURL;
-                    qrCodeImage.style.display = 'block';
-                    qrCodeImage.alt = 'QR Code';
+                    qrCodeImage.style.display = "block";
+                    qrCodeImage.alt = "QR Code";
                 } else {
-                    console.error('API Error:', data);
+                    console.error("API Error:", data);
                     alert("Error generating QR code. Please check the account number or try again later.");
                 }
             } catch (error) {
-                console.error('Fetch Error:', error);
+                console.error("Fetch Error:", error);
                 alert("Network error. Please try again.");
             }
         }
     </script>
-
 </body>
 
 </html>
